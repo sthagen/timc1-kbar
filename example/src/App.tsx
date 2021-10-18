@@ -13,6 +13,7 @@ import Docs from "./Docs";
 import SearchDocsActions from "./SearchDocsActions";
 import { Action, ResultHandlers, ResultState } from "../../src/types";
 import { createAction } from "../../src/utils";
+import { useAnalytics } from "./utils";
 
 const searchStyle = {
   padding: "12px 16px",
@@ -41,6 +42,7 @@ const animatorStyle = {
 };
 
 const App = () => {
+  useAnalytics();
   const history = useHistory();
   return (
     <KBarProvider
@@ -115,12 +117,6 @@ const App = () => {
           parent: "theme",
         },
       ]}
-      options={{
-        animations: {
-          enterMs: 200,
-          exitMs: 100,
-        },
-      }}
     >
       <SearchDocsActions />
       <KBarPortal>

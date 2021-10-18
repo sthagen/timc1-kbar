@@ -22,7 +22,11 @@ function useToggleHandler() {
 
   React.useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        event.key === "k" &&
+        event.defaultPrevented === false
+      ) {
         event.preventDefault();
         query.setVisualState((vs) => {
           if (vs === VisualState.hidden || vs === VisualState.animatingOut) {
@@ -68,7 +72,6 @@ function useToggleHandler() {
           return finalVs;
         });
         query.setCurrentRootAction(null);
-        query.setSearch("");
       }, ms);
     },
     [options.animations?.enterMs, options.animations?.exitMs, query]
@@ -125,8 +128,11 @@ function useShortcuts() {
 
       const activeElement = document.activeElement;
       const ignoreStrokes =
-        activeElement &&
-        inputs.indexOf(activeElement.tagName.toLowerCase()) !== -1;
+      activeElement &&
+      (inputs.indexOf(activeElement.tagName.toLowerCase()) !== -1 ||
+        activeElement.attributes.getNamedItem("role")?.value === "textbox" ||
+        activeElement.attributes.getNamedItem("contenteditable")?.value ===
+          "true");
 
       if (ignoreStrokes || event.metaKey || charList.indexOf(key) === -1) {
         return;
@@ -140,9 +146,13 @@ function useShortcuts() {
 
       buffer.push(key);
       lastKeyStrokeTime = currentTime;
+      const bufferString = buffer.join("");
 
       for (let action of actionsList) {
-        if (JSON.stringify(action.shortcut) === JSON.stringify(buffer)) {
+        if (!action.shortcut) {
+          continue;
+        }
+        if (action.shortcut.join("") === bufferString) {
           action.perform?.();
           buffer = [];
           break;
