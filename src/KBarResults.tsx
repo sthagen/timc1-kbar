@@ -9,6 +9,16 @@ import type {
 } from "./types";
 import useKBar from "./useKBar";
 
+/**
+ * @deprecated Results can be created using a combination of the `Results` component alongside
+ * `useResultItem` hook.
+ *
+ * ```tsx
+ * import { Results, useResultItem } from "kbar";
+ * ```
+ *
+ * Reference: https://github.com/timc1/kbar/pull/59
+ */
 export default function KBarResults(props: KBarResultsProps) {
   const { search, actions, currentRootActionId, query } = useKBar((state) => ({
     search: state.searchQuery,
@@ -26,7 +36,13 @@ export default function KBarResults(props: KBarResultsProps) {
   );
 
   const currActions = React.useMemo(() => {
-    if (!currentRootActionId) {
+    if (
+      !currentRootActionId ||
+      // `currentRootActionId` can refer to an action that is no
+      // longer registered while kbar is open in the case where
+      // `useRegisterActions`'s effect is ran multiple times.
+      (currentRootActionId && !actions[currentRootActionId])
+    ) {
       return actionsList.reduce((acc, curr) => {
         if (!curr.parent) {
           acc[curr.id] = curr;
@@ -208,7 +224,9 @@ function useMatches(term: string, actions: Action[]) {
     () =>
       term.trim() === ""
         ? actions
-        : matchSorter(actions, term, { keys: ["keywords", "name"] }),
+        : matchSorter(actions, term, {
+            keys: ["keywords", "name", "subtitle"],
+          }),
     [term, actions]
   );
 }

@@ -15,6 +15,7 @@ export default function KBarSearch(
   React.useEffect(() => {
     query.setSearch("");
     ownRef.current!.focus();
+    return () => query.setSearch("");
   }, [currentRootActionId, query]);
 
   return (
@@ -27,6 +28,8 @@ export default function KBarSearch(
         props.onChange?.(event);
         query.setSearch(event.target.value);
       }}
+      spellCheck="false"
+      autoComplete="off"
       onKeyDown={(event) => {
         if (currentRootActionId && !search && event.key === "Backspace") {
           const parent = actions[currentRootActionId].parent;
