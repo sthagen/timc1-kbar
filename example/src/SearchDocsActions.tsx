@@ -30,7 +30,7 @@ export default function SearchDocsActions() {
       return actions;
     };
     return collectDocs(data);
-  }, []);
+  }, [history]);
 
   const rootSearchAction = React.useMemo(
     () =>
@@ -38,7 +38,7 @@ export default function SearchDocsActions() {
         ? {
             id: searchId,
             name: "Search docs…",
-            shortcut: ["shift", "d"],
+            shortcut: ["?"],
             keywords: "find",
             section: "",
             children: searchActions.map((action) => action.id),
