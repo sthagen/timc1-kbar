@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Action } from "./types";
+import { BaseAction } from "./types";
 
 export function swallowEvent(event) {
   event.stopPropagation();
@@ -46,11 +46,11 @@ export function randomId() {
   return Math.random().toString(36).substring(2, 9);
 }
 
-export function createAction(params: Omit<Action, "id">): Action {
+export function createAction(params: Omit<BaseAction, "id">) {
   return {
     id: randomId(),
     ...params,
-  };
+  } as BaseAction;
 }
 
 export function noop() {}
@@ -69,4 +69,22 @@ export function getScrollbarWidth() {
   const scrollbarWidth = outer.offsetWidth - inner.offsetWidth;
   outer.parentNode!.removeChild(outer);
   return scrollbarWidth;
+}
+
+export function useThrottledValue(value: any, ms: number = 100) {
+  const [throttledValue, setThrottledValue] = React.useState(value);
+  const lastRan = React.useRef(Date.now());
+
+  React.useEffect(() => {
+    const timeout = setTimeout(() => {
+      setThrottledValue(value);
+      lastRan.current = Date.now();
+    }, lastRan.current - (Date.now() - ms));
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [ms, value]);
+
+  return throttledValue;
 }

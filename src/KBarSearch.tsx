@@ -18,11 +18,20 @@ export default function KBarSearch(
     return () => query.setSearch("");
   }, [currentRootActionId, query]);
 
+  const placeholder = React.useMemo(
+    () =>
+      currentRootActionId
+        ? actions[currentRootActionId].name
+        : "Type a command or search…",
+    [actions, currentRootActionId]
+  );
+
   return (
     <input
       ref={ownRef}
       autoFocus
       {...props}
+      placeholder={placeholder}
       value={search}
       onChange={(event) => {
         props.onChange?.(event);
@@ -33,7 +42,7 @@ export default function KBarSearch(
       onKeyDown={(event) => {
         if (currentRootActionId && !search && event.key === "Backspace") {
           const parent = actions[currentRootActionId].parent;
-          query.setCurrentRootAction(parent);
+          query.setCurrentRootAction(parent?.id);
         }
       }}
     />
