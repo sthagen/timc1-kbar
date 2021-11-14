@@ -1,22 +1,25 @@
 import "./index.scss";
 import * as React from "react";
-import { KBarAnimator } from "../../src/KBarAnimator";
-import { KBarProvider } from "../../src/KBarContextProvider";
-import KBarPortal from "../../src/KBarPortal";
-import useDeepMatches from "../../src/useDeepMatches";
-import KBarPositioner from "../../src/KBarPositioner";
-import KBarSearch from "../../src/KBarSearch";
-import KBarResults from "../../src/KBarResults";
 import { Switch, Route, useHistory, Redirect } from "react-router-dom";
 import Layout from "./Layout";
 import Home from "./Home";
 import Docs from "./Docs";
-import SearchDocsActions from "./SearchDocsActions";
-import { createAction } from "../../src/utils";
+import RegisterDocActions from "./Docs/RegisterDocActions";
 import { useAnalytics } from "./utils";
 import Blog from "./Blog";
 import { ActionImpl } from "../../src/action";
-import { ActionId } from "../../src";
+
+import {
+  ActionId,
+  KBarAnimator,
+  KBarProvider,
+  KBarPortal,
+  useDeepMatches,
+  KBarPositioner,
+  KBarSearch,
+  KBarResults,
+  createAction,
+} from "../../src";
 
 const searchStyle = {
   padding: "12px 16px",
@@ -51,6 +54,14 @@ const App = () => {
   const history = useHistory();
   return (
     <KBarProvider
+      options={{
+        callbacks: {
+          onOpen: () => console.log("open"),
+          onClose: () => console.log("close"),
+          onQueryChange: (query) => console.log("changed", query),
+          onSelectAction: (action) => console.log("executed", action),
+        },
+      }}
       actions={[
         {
           id: "homeAction",
@@ -119,7 +130,7 @@ const App = () => {
         },
       ]}
     >
-      <SearchDocsActions />
+      <RegisterDocActions />
       <KBarPortal>
         <KBarPositioner>
           <KBarAnimator style={animatorStyle}>
@@ -248,7 +259,10 @@ const ResultItem = React.forwardRef(
           </div>
         </div>
         {action.shortcut?.length ? (
-          <div style={{ display: "grid", gridAutoFlow: "column", gap: "4px" }}>
+          <div
+            aria-hidden
+            style={{ display: "grid", gridAutoFlow: "column", gap: "4px" }}
+          >
             {action.shortcut.map((sc) => (
               <kbd
                 key={sc}

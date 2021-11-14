@@ -30,15 +30,19 @@ function useToggleHandler() {
         event.defaultPrevented === false
       ) {
         event.preventDefault();
-        query.setVisualState((vs) => {
-          if (vs === VisualState.hidden || vs === VisualState.animatingOut) {
-            return VisualState.animatingIn;
-          }
-          return VisualState.animatingOut;
-        });
+        query.toggle();
+
+        if (showing) {
+          options.callbacks?.onClose?.();
+        } else {
+          options.callbacks?.onOpen?.();
+        }
       }
       if (event.key === "Escape") {
-        if (showing) event.stopPropagation();
+        if (showing) {
+          event.stopPropagation();
+          options.callbacks?.onClose?.();
+        }
 
         query.setVisualState((vs) => {
           if (vs === VisualState.hidden || vs === VisualState.animatingOut) {
@@ -51,7 +55,7 @@ function useToggleHandler() {
 
     window.addEventListener("keydown", handleKeyDown, true);
     return () => window.removeEventListener("keydown", handleKeyDown, true);
-  }, [query, showing]);
+  }, [options.callbacks, query, showing]);
 
   const timeoutRef = React.useRef<Timeout>();
   const runAnimateTimer = React.useCallback(
@@ -105,7 +109,7 @@ function useToggleHandler() {
  * underlying page content from scrolling when kbar is open.
  */
 function useDocumentLock() {
-  const { visualState } = useKBar((state) => ({
+  const { visualState, options } = useKBar((state) => ({
     visualState: state.visualState,
   }));
 
@@ -114,21 +118,25 @@ function useDocumentLock() {
       document.body.style.pointerEvents = "none";
       document.body.style.overflow = "hidden";
 
-      let scrollbarWidth = getScrollbarWidth();
-      // take into account the margins explicitly added by the consumer
-      const mr = getComputedStyle(document.body)["margin-right"];
-      if (mr) {
-        // remove non-numeric values; px, rem, em, etc.
-        scrollbarWidth += Number(mr.replace(/\D/g, ""));
+      if (!options.disableScrollbarManagement) {
+        let scrollbarWidth = getScrollbarWidth();
+        // take into account the margins explicitly added by the consumer
+        const mr = getComputedStyle(document.body)["margin-right"];
+        if (mr) {
+          // remove non-numeric values; px, rem, em, etc.
+          scrollbarWidth += Number(mr.replace(/\D/g, ""));
+        }
+        document.body.style.marginRight = scrollbarWidth + "px";
       }
-
-      document.body.style.marginRight = scrollbarWidth + "px";
     } else if (visualState === VisualState.hidden) {
       document.body.style.removeProperty("pointer-events");
       document.body.style.removeProperty("overflow");
-      document.body.style.removeProperty("margin-right");
+
+      if (!options.disableScrollbarManagement) {
+        document.body.style.removeProperty("margin-right");
+      }
     }
-  }, [visualState]);
+  }, [options.disableScrollbarManagement, visualState]);
 }
 
 /**
